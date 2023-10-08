@@ -11,6 +11,10 @@ import pandas as pd
 
 class clsQSPICE:
     @classmethod
+    def version(cls):
+        return "2023.10.08"
+
+    @classmethod
     def _ExecPath(cls):
         cls.gpath = {}
         cls.gpath['cwd'] = os.getcwd()
