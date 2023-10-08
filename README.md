@@ -8,7 +8,7 @@
 
 ## About PyQSPICE and QSPICE
 
-The PyQSPICE is a Python package / class of wrapper script interface for the [QSPICE™](https://www.qorvo.com/design-hub/design-tools/interactive/qspice) - a SPICE circuit simulator - available from [Qorvo](qorvo.com) at no cost.
+The PyQSPICE is a Python package / class of wrapper script interface for the [QSPICE™](https://www.qorvo.com/design-hub/design-tools/interactive/qspice) - a SPICE circuit simulator - available from [Qorvo](https://www.qorvo.com) at no cost.
 
 ![QSPICE](images/QSPICE.jpg)
 
