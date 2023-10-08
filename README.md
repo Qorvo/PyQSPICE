@@ -24,7 +24,7 @@ The PyQSPICE invokes QSPICE executable files in a CUI (Charactor User Interface)
 
 ## License and Availability
 
-The PyQSPICE is under the [Qorvo software license](https://github.com/Qorvo/PyQSPICE/LICENSE),
+The PyQSPICE is under the [Qorvo software license](https://github.com/Qorvo/PyQSPICE/blob/13ae6387ef4619cf605c854739218b3d24db69d2/LICENSE),
 
 and PyQSPICE is available from two (2) repositories at the [Qorvo@GitHub](https://github.com/Qorvo) and the [PyPI](https://pypi.org) 
 * GitHub:  [https://github.com/Qorvo/PyQSPICE](https://github.com/Qorvo/PyQSPICE)
