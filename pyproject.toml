@@ -1,0 +1,25 @@
+[project]
+name = "PyQSPICE"
+version = "2023.10.19"
+authors = [
+    { name="Masashi Nogawa" },
+]
+description = "Python Wrapper for QSPICE"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {file = "LICENSE"}
+keywords = ["QSPICE", "Qorvo", "SPICE", "LTSpice"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: Other/Proprietary License",
+]
+dependencies =  [
+    "pandas",
+    "matplotlib",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/Qorvo/PyQSPICE"
+"License" = "https://github.com/Qorvo/PyQSPICE/LICENSE"
+"QSPICE" = "https://www.qorvo.com/design-hub/design-tools/interactive/qspice"
+
