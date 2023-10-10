@@ -10,29 +10,29 @@ import pandas as pd
 
 
 class clsQSPICE:
-    @classmethod
-    def version(cls):
-        return "2023.10.08"
+## Version Number
+    version = "2023.10.10"
+
+## Global (Class) Path Information
+    gpath = {}
+    gpath['cwd'] = os.getcwd()
+    gpath['home'] = expanduser("~")
+    usrp = gpath['home'] + "/QSPICE/"
+    sysp = r"c:/Program Files/QSPICE/"
+
+    for exe in ['QUX', 'QSPICE64']:
+        if os.path.isfile(sysp + exe + '.exe'): gpath[exe] = sysp + exe + '.exe'
+        # User path has priority
+        if os.path.isfile(usrp + exe + '.exe'): gpath[exe] = usrp + exe + '.exe'
+        try: gpath[exe]
+        except: print(exe + ".exe not found!") * exit()
+    del usrp, sysp
 
     @classmethod
-    def _ExecPath(cls):
-        cls.gpath = {}
-        cls.gpath['cwd'] = os.getcwd()
-        cls.gpath['home'] = expanduser("~")
-        usrp = cls.gpath['home'] + "/QSPICE/"
-        sysp = r"c:/Program Files/QSPICE/"
-    
-        ux = "QUX.exe"
-        qs = "QSPICE64.exe"
-        
-        for exe in ['QUX', 'QSPICE64']:
-            if os.path.isfile(sysp + exe + '.exe'): cls.gpath[exe] = sysp + exe + '.exe'
-            if os.path.isfile(usrp + exe + '.exe'): cls.gpath[exe] = usrp + exe + '.exe'
-            try: cls.gpath[exe]
-            except: print(exe + ".exe not found!") * exit()
-             
+    def version(cls):
+        return version
+
     def __init__(self, fname):
-        clsQSPICE._ExecPath()
         self.path = {}
         self.ts = {}
         self.date = {}
@@ -125,17 +125,18 @@ class clsQSPICE:
         for suf in arr:
             self.path[suf] = self.path['base'] + "." + suf
             try: self.ts[suf] = os.path.getmtime(self.path[suf])
-            except: self.ts[suf] = 0
+            except:
+                self.ts[suf] = 0
+                try: del self.date[suf]
+                except: pass
             if self.ts[suf]:
                 self.date[suf] = datetime.fromtimestamp(self.ts[suf])
 
         
     @classmethod
     def chdir(cls, dir):
-        try: cls.gpath['cwd']
-        except: clsQSPICE._ExecPath()
         try: os.path.isdir(dir)
-        except: print("No such directory:" + dir, file=sys.stderr)
+        except: print("No such directory:" + dir, file=sys.stderr) * exit()
         os.chdir(dir)
         cls.gpath['cwd'] = os.getcwd()
 
@@ -143,4 +144,5 @@ class clsQSPICE:
         for s in suf:
             try: os.remove(self.path[s])
             except: print("Can't remove file:" + self.path[s], file=sys.stderr)
+        self.tstime(suf)
         
