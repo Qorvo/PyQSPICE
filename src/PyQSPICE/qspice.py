@@ -30,7 +30,7 @@ class clsQSPICE:
 
     @classmethod
     def version(cls):
-        return version
+        return cls.version
 
     def __init__(self, fname):
         self.path = {}
