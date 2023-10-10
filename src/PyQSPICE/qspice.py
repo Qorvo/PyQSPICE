@@ -11,7 +11,7 @@ import pandas as pd
 
 class clsQSPICE:
 ## Version Number
-    version = "2023.10.10"
+    verstr = "2023.10.10"
 
 ## Global (Class) Path Information
     gpath = {}
@@ -30,7 +30,7 @@ class clsQSPICE:
 
     @classmethod
     def version(cls):
-        return cls.version
+        return cls.verstr
 
     def __init__(self, fname):
         self.path = {}
