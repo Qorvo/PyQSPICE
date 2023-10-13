@@ -32,26 +32,33 @@ class clsQSPICE:
     def version(cls):
         return cls.verstr
 
+    @classmethod
+    def chdir(cls, dir):
+        try: os.path.isdir(dir)
+        except: print("No such directory:" + dir, file=sys.stderr) * exit()
+        os.chdir(dir)
+        cls.gpath['cwd'] = os.getcwd()
+
     def __init__(self, fname):
         self.path = {}
         self.ts = {}
         self.date = {}
-        
+
         self.sim = {"Nline": 4999, "Nstep": 0}
-        
+
         self.path['user'] = fname
         self.path['base'] = fname.removesuffix('.qsch').removesuffix('.qraw').removesuffix('.cir')
         clsQSPICE.tstime(self, ['qsch', 'qraw', 'cir'])
-        
+
     def setNline(self, i):
         self.sim['Nline'] = i
-    
+
     def qsch2cir(self):
         if self.ts['qsch']:
             with open(self.path['cir'], "w") as ofile:
                 subprocess.run([self.gpath['QUX'], "-Netlist", self.path['qsch'], "-stdout"], stdout=ofile)
                 clsQSPICE.tstime(self, ['cir'])
-                
+
     def cir2qraw(self):
         if self.ts['cir']:
             subprocess.run([self.gpath['QSPICE64'], self.path['cir']])
@@ -85,13 +92,13 @@ class clsQSPICE:
                         flgv = 0
                     if line.startswith("Variables:"):
                         flgv = 1
-                        
+
             with subprocess.Popen([self.gpath['QUX'], "-Export", self.path['qraw'], plots, str(self.sim['Nline']), "CSV", "-stdout"], stdout=subprocess.PIPE, text=True) as qux:
-                
+
                 head = []
                 head.append(self.sim['Xlbl'])
                 head.extend(probe)
-                
+
                 if self.sim['Type'].startswith("AC"):
                     df = pd.read_csv(qux.stdout, sep='\t', header=0, names=head)
                 if self.sim['Type'].startswith("Tran") or self.sim['Type'].startswith("DC"):
@@ -114,13 +121,13 @@ class clsQSPICE:
                                 try: self.sim["StepInfo"]
                                 except: self.sim["StepInfo"] = ""
                                 self.sim["StepInfo"] = self.sim["StepInfo"] + line
-                                
+
             return df
-                        
+
     def comp2real(self, df, idx):
         for i in idx:
             df[i] = df[i].map(lambda x: (x).real)
-    
+
     def tstime(self, arr):
         for suf in arr:
             self.path[suf] = self.path['base'] + "." + suf
@@ -132,17 +139,9 @@ class clsQSPICE:
             if self.ts[suf]:
                 self.date[suf] = datetime.fromtimestamp(self.ts[suf])
 
-        
-    @classmethod
-    def chdir(cls, dir):
-        try: os.path.isdir(dir)
-        except: print("No such directory:" + dir, file=sys.stderr) * exit()
-        os.chdir(dir)
-        cls.gpath['cwd'] = os.getcwd()
-
     def clean(self,suf):
         for s in suf:
             try: os.remove(self.path[s])
             except: print("Can't remove file:" + self.path[s], file=sys.stderr)
         self.tstime(suf)
-        
+

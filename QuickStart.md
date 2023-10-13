@@ -32,7 +32,7 @@ if not os.getcwd().rstrip().replace('/','\\').endswith(r'tests\10_DC'):
 print(pqs.gpath)
 ```
 
-    {'cwd': 'C:\\Users\\Masashi\\PyQSPICE\\tests\\10_DC', 'home': 'C:\\Users\\Masashi', 'QUX': 'C:\\Users\\Masashi/QSPICE/QUX.exe', 'QSPICE64': 'C:\\Users\\Masashi/QSPICE/QSPICE64.exe'}
+    {'cwd': 'C:\\Users\\Masashi\\Documents\\vp\\Masashi\\PyQSPICE\\tests\\10_DC', 'home': 'C:\\Users\\Masashi', 'QUX': 'C:\\Users\\Masashi/QSPICE/QUX.exe', 'QSPICE64': 'C:\\Users\\Masashi/QSPICE/QSPICE64.exe'}
     
 
 ## 3. PyQSPICE Instance
@@ -54,8 +54,8 @@ print(run.date)
 ```
 
     {'user': 'UJ3N065080', 'base': 'UJ3N065080', 'qsch': 'UJ3N065080.qsch', 'qraw': 'UJ3N065080.qraw', 'cir': 'UJ3N065080.cir'}
-    {'qsch': 1696704204.0, 'qraw': 0, 'cir': 0}
-    {'qsch': datetime.datetime(2023, 10, 7, 14, 43, 24)}
+    {'qsch': 1696704204.0, 'qraw': 1697208347.42511, 'cir': 1697208347.1637833}
+    {'qsch': datetime.datetime(2023, 10, 7, 14, 43, 24), 'qraw': datetime.datetime(2023, 10, 13, 10, 45, 47, 425110), 'cir': datetime.datetime(2023, 10, 13, 10, 45, 47, 163783)}
     
 
 ## 4. Generate a Netlist **(.cir)**
@@ -69,8 +69,8 @@ print(run.ts)
 print(run.date)
 ```
 
-    {'qsch': 1696704204.0, 'qraw': 0, 'cir': 1696946690.2517605}
-    {'qsch': datetime.datetime(2023, 10, 7, 14, 43, 24), 'cir': datetime.datetime(2023, 10, 10, 10, 4, 50, 251760)}
+    {'qsch': 1696704204.0, 'qraw': 1697208347.42511, 'cir': 1697208382.4912722}
+    {'qsch': datetime.datetime(2023, 10, 7, 14, 43, 24), 'qraw': datetime.datetime(2023, 10, 13, 10, 45, 47, 425110), 'cir': datetime.datetime(2023, 10, 13, 10, 46, 22, 491272)}
     
 
 ## 5. Run QSPICE for a Result Data File **(.qraw)**
@@ -84,8 +84,8 @@ print(run.ts)
 print(run.date)
 ```
 
-    {'qsch': 1696704204.0, 'qraw': 1696946693.1716292, 'cir': 1696946690.2517605}
-    {'qsch': datetime.datetime(2023, 10, 7, 14, 43, 24), 'cir': datetime.datetime(2023, 10, 10, 10, 4, 50, 251760), 'qraw': datetime.datetime(2023, 10, 10, 10, 4, 53, 171629)}
+    {'qsch': 1696704204.0, 'qraw': 1697208386.0651138, 'cir': 1697208382.4912722}
+    {'qsch': datetime.datetime(2023, 10, 7, 14, 43, 24), 'qraw': datetime.datetime(2023, 10, 13, 10, 46, 26, 65114), 'cir': datetime.datetime(2023, 10, 13, 10, 46, 22, 491272)}
     
 
 ## 6. Load a Result Data File
@@ -130,31 +130,63 @@ From this point, you can do your own operation on your simulation results.
 mpl.rcParams.update([['font.sans-serif', ["Arial Rounded MT Bold", 'Arial Unicode MS', 'Arial', 'sans-serif']], ["mathtext.default", "rm"], ["legend.labelspacing", 0.1], ["legend.columnspacing", 0.2], ["legend.handletextpad", 0.3], ['axes.formatter.useoffset', False], ['xtick.minor.visible', True], ['ytick.minor.visible', True], ['grid.linewidth', 1],["savefig.dpi", 300], ["axes.unicode_minus", False]])
 
 plt.close('all')
-plt.style.use('ggplot')
 
-fig, ax = plt.subplots(tight_layout=True)
+#['Solarize_Light2', '_classic_test_patch', '_mpl-gallery', '_mpl-gallery-nogrid', 'bmh', 'classic', 'dark_background', 'fast', 'fivethirtyeight', 'ggplot', 'grayscale', 'seaborn-v0_8', 'seaborn-v0_8-bright', 'seaborn-v0_8-colorblind', 'seaborn-v0_8-dark', 'seaborn-v0_8-dark-palette', 'seaborn-v0_8-darkgrid', 'seaborn-v0_8-deep', 'seaborn-v0_8-muted', 'seaborn-v0_8-notebook', 'seaborn-v0_8-paper', 'seaborn-v0_8-pastel', 'seaborn-v0_8-poster', 'seaborn-v0_8-talk', 'seaborn-v0_8-ticks', 'seaborn-v0_8-white', 'seaborn-v0_8-whitegrid', 'tableau-colorblind10']
 
-for i in range(run.sim['Nstep']):
-    df[df.Step == i].plot(ax=ax, x=run.sim['Xlbl'],  y="Id(J1)", label="Step-" + str(i))
+for stl in ['ggplot', 'Solarize_Light2', 'classic', 'dark_background', 'grayscale']:
+    plt.style.use(stl)
 
-ax.set_xlim(run.sim['Xmin'],run.sim['Xmax'])
-ax.set_ylim(0,80)
-ax.set_ylabel('Drain Current (A)', fontsize=14)
-ax.set_xlabel('$V_{DS}$ (V)', fontsize=14)
-ax.minorticks_on()
+    fig, ax = plt.subplots(tight_layout=True)
 
-ax.grid(which='major', linewidth="0.5")
-ax.grid(which='minor', linewidth="0.35")
+    for i in range(run.sim['Nstep']):
+        df[df.Step == i].plot(ax=ax, x=run.sim['Xlbl'],  y="Id(J1)", label="Step-" + str(i))
 
-ax.text(0.1, 70, run.sim['StepInfo'])
-plt.legend(ncol=1, loc="center left",fancybox=True)
+    ax.set_xlim(run.sim['Xmin'],run.sim['Xmax'])
+    ax.set_ylim(0,80)
+    ax.set_ylabel('Drain Current (A)', fontsize=14)
+    ax.set_xlabel('$V_{DS}$ (V)', fontsize=14)
+    ax.minorticks_on()
 
-plt.show()
+    ax.grid(which='major', linewidth="0.5")
+    ax.grid(which='minor', linewidth="0.35")
+
+    ax.text(0.1, 70, run.sim['StepInfo'])
+    plt.legend(ncol=1, loc="center left",fancybox=True)
+
+    plt.show()
+
+    run.tstime(['png'])
+    plt.savefig(run.path['png'], format='png', bbox_inches='tight')
+    plt.close('all')
 ```
 
 
     
-![png](images/output_14_0.png)
+![](images/output_14_0.png)
+    
+
+
+
+    
+![](images/output_14_1.png)
+    
+
+
+
+    
+![](images/output_14_2.png)
+    
+
+
+
+    
+![](images/output_14_3.png)
+    
+
+
+
+    
+![](images/output_14_4.png)
     
 
 
@@ -167,15 +199,16 @@ The **clean()** PyQSPICE method cleans up files generated by the script.
 
 
 ```python
+run.tstime(['png'])
 print(run.ts)
 print(run.date)
-run.clean(['cir','qraw'])
+run.clean(['cir','qraw','png'])
 print(run.ts)
 print(run.date)
 ```
 
-    {'qsch': 1696704204.0, 'qraw': 1696946693.1716292, 'cir': 1696946690.2517605}
-    {'qsch': datetime.datetime(2023, 10, 7, 14, 43, 24), 'cir': datetime.datetime(2023, 10, 10, 10, 4, 50, 251760), 'qraw': datetime.datetime(2023, 10, 10, 10, 4, 53, 171629)}
-    {'qsch': 1696704204.0, 'qraw': 0, 'cir': 0}
+    {'qsch': 1696704204.0, 'qraw': 1697208386.0651138, 'cir': 1697208382.4912722, 'png': 1697208396.8097184}
+    {'qsch': datetime.datetime(2023, 10, 7, 14, 43, 24), 'qraw': datetime.datetime(2023, 10, 13, 10, 46, 26, 65114), 'cir': datetime.datetime(2023, 10, 13, 10, 46, 22, 491272), 'png': datetime.datetime(2023, 10, 13, 10, 46, 36, 809718)}
+    {'qsch': 1696704204.0, 'qraw': 0, 'cir': 0, 'png': 0}
     {'qsch': datetime.datetime(2023, 10, 7, 14, 43, 24)}
     
