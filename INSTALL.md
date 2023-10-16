@@ -237,7 +237,7 @@ Successfully installed jupyterlab-4.0.7
 
 So to use the saved JupyterLab example files on the PyQSPICE project, we clone (copy) the PyQSPICE from GitHub.
 
-## 7.1 ...if you chose [3.2 PyQSPICE from GitBut](#3.2)
+## 7.1 ...if you chose [3.2 PyQSPICE from GitHub](#3.2)
 
 If you installed your PyQSPICE from the GitHub, you do nothing at this step.
 
