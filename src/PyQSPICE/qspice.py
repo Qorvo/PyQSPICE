@@ -11,7 +11,7 @@ import pandas as pd
 
 class clsQSPICE:
 ## Version Number
-    verstr = "2023.10.10"
+    verstr = "2023.10.29"
 
 ## Global (Class) Path Information
     gpath = {}
@@ -50,20 +50,28 @@ class clsQSPICE:
         self.path['base'] = fname.removesuffix('.qsch').removesuffix('.qraw').removesuffix('.cir')
         clsQSPICE.tstime(self, ['qsch', 'qraw', 'cir'])
 
+    # How many data points to read from QRAW simulation result files
+    # Too small, too zigzag; too big, too slow ☹    
     def setNline(self, i):
         self.sim['Nline'] = i
 
+    # Generate a netlist CIR file from the source schematic QSCH file
     def qsch2cir(self):
         if self.ts['qsch']:
             with open(self.path['cir'], "w") as ofile:
                 subprocess.run([self.gpath['QUX'], "-Netlist", self.path['qsch'], "-stdout"], stdout=ofile)
                 clsQSPICE.tstime(self, ['cir'])
 
+    # Run a simulation from the netlist CIR file
     def cir2qraw(self):
         if self.ts['cir']:
             subprocess.run([self.gpath['QSPICE64'], self.path['cir']])
             clsQSPICE.tstime(self, ['qraw'])
 
+    # Load simulation result signals from the simulation results QRAW file
+    # Input:  Array of signal strings in the way you specify in ".PLOT" statement
+    # Output:  It returns Pandas DataFrame
+    #  ==> Pandas supports data loading from the STDOUT-STDIN PIPE/stream (where the Numpy doesn't...temporary file needed)
     def LoadQRAW(self, probe):
         if self.ts['qraw']:
             plots = ",".join(probe)
@@ -124,10 +132,30 @@ class clsQSPICE:
 
             return df
 
+    # In the given DataFrame "df", search the "crossing" signal crossing ZERO from positive to negative,
+    # then, returns the "target" signal and frequency "freq" values at the ZERO-crossing
+    def x0pos2neg(self, df, crossing, target, step=0, freq="Freq"):
+        dftmp = pd.concat([df[(df[crossing] > 0) & (df["Step"] == step)].tail(1),df[(df[crossing] < 0) & (df["Step"] == step)].head(1)])
+        #print(dftmp)
+        (x0,x1) = dftmp[crossing]
+        (t0,t1) = dftmp[target]
+        (f0,f1) = dftmp[freq]
+        #print(x0,x1,t0,t1,f0,f1)
+        f = (x0 / (x0 - x1)) * (f1 - f0) + f0
+        t = (x0 / (x0 - x1)) * (t1 - t0) + t0
+        return(f, t)
+
+    
+    # Convert Pandas DataFrame element to real/float
+    #     Pandas converts all data into complex when using "apply" method, for example calculating "gain".
+    #       ==> Someone, help here how to stop this Pandas' behavior !
+    #     When we plot the data, we need real numbers.
     def comp2real(self, df, idx):
         for i in idx:
             df[i] = df[i].map(lambda x: (x).real)
 
+    # Obtain time-stamp of specified suffix files on Windows OS
+    # You may use this to add your plot files ".PNG", ".JPG" for the cleaning, see next function "clean()".
     def tstime(self, arr):
         for suf in arr:
             self.path[suf] = self.path['base'] + "." + suf
@@ -139,9 +167,10 @@ class clsQSPICE:
             if self.ts[suf]:
                 self.date[suf] = datetime.fromtimestamp(self.ts[suf])
 
+    # Delete specified files
+    # Be carefule, it can delete your schematic "QSCH" file without warning.
     def clean(self,suf):
         for s in suf:
             try: os.remove(self.path[s])
             except: print("Can't remove file:" + self.path[s], file=sys.stderr)
         self.tstime(suf)
-
