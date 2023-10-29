@@ -40,6 +40,9 @@ Examples ::
 * **AC** Simulation <br/>
   [tests/20_AC](tests/20_AC/20_AC.md) <br/>
   ==> JupyterLab file is **tests/20_AC/20_AC.ipynb**
+* **AC, Nyquist Diagram**<br/>
+  [tests/22_NyquistDia](tests/22_NyquistDia/22_NyquistDia.md) <br/>
+  ==> JupyterLab file is **tests/22_NyquistDia/22_NyquistDia.ipynb**
 * **TRAN** Simulation <br/>
   [tests/30_TRAN](tests/30_TRAN/30_TRAN.md) <br/>
   ==> JupyterLab file is **tests/30_TRAN/30_TRAN.ipynb**
