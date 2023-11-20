@@ -7,6 +7,8 @@ from datetime import datetime
 import re
 
 import pandas as pd
+import math
+import cmath
 
 
 class clsQSPICE:
@@ -134,8 +136,8 @@ class clsQSPICE:
 
     # In the given DataFrame "df", search the "crossing" signal crossing ZERO from positive to negative,
     # then, returns the "target" signal and frequency "freq" values at the ZERO-crossing
-    def x0pos2neg(self, df, crossing, target, step=0, freq="Freq"):
-        dftmp = pd.concat([df[(df[crossing] > 0) & (df["Step"] == step)].tail(1),df[(df[crossing] < 0) & (df["Step"] == step)].head(1)])
+    def x0pos2neg(self, df, crossing, target, freq="Freq"):
+        dftmp = pd.concat([df[df[crossing] > 0].tail(1),df[df[crossing] < 0].head(1)])
         #print(dftmp)
         (x0,x1) = dftmp[crossing]
         (t0,t1) = dftmp[target]
@@ -145,6 +147,44 @@ class clsQSPICE:
         t = (x0 / (x0 - x1)) * (t1 - t0) + t0
         return(f, t)
 
+    # In the given DataFrame "df", search the "crossing" signal crossing ZERO from negative to positive.
+    # then, returns the "target" signal and frequency "freq" values at the ZERO-crossing
+    def x0neg2pos(self, df, crossing, target, freq="Freq"):
+        dftmp = pd.concat([df[df[crossing] < 0].tail(1),df[df[crossing] > 0].head(1)])
+        #print(dftmp)
+        (x0,x1) = dftmp[crossing]
+        (t0,t1) = dftmp[target]
+        (f0,f1) = dftmp[freq]
+        #print(x0,x1,t0,t1,f0,f1)
+        f = f1 - (x1 / (x1 - x0)) * (f1 - f0)
+        t = t1 - (x1 / (x1 - x0)) * (t1 - t0)
+        return(f, t)
+
+    # Calculate absolute value of the "target" in dB, also colculate argument of the "target"
+    # If strings specified, it also extrace real and imaginary part of the "target"
+    # Further-If "-1" specified, returns real and imaginary part of the "target" with 180 degree rotated.
+    # NOTE: apply() method returns new DataFrame object, so it returns this new object
+    def GainPhase(self, df, target, strabs, strarg, strre="none", strim="none", sign=1):
+        def Calc(row):
+            row[strabs] = 20*math.log10(abs(row[target]))
+            row[strarg] = math.degrees(cmath.phase(row[target]))
+            if strre != "none":
+                row[strre] = row[target].real * sign
+            if strim != "none":
+                row[strim] = row[target].imag * sign
+            return row
+        return df.apply(Calc, axis=1)
+
+    # Calculate QTg for NISM
+    def QTg(self, df, flbl, vlbl, angle=1):
+        ddf = df - df.shift()
+        adf = (df + df.shift())/2
+        ddf[flbl] = adf.iloc[:,0]
+        def Calc(row):
+            row[vlbl] = -0.5 * row.iloc[1] / row.iloc[0] * row[flbl] / angle
+            return row
+        retdf = ddf.drop(0).apply(Calc,axis=1).loc[:,[flbl, vlbl]]
+        return retdf.reset_index(drop=True)
     
     # Convert Pandas DataFrame element to real/float
     #     Pandas converts all data into complex when using "apply" method, for example calculating "gain".
@@ -153,6 +193,29 @@ class clsQSPICE:
     def comp2real(self, df, idx):
         for i in idx:
             df[i] = df[i].map(lambda x: (x).real)
+
+    # Obtain a component value specified
+    # It returns "number" or "simulation variable label".
+    def findRLC(self, target):
+        with open(self.path['cir'], encoding='SJIS') as f:
+            val = -1
+            for line in f:
+                l = line.rstrip('\r\n')
+                if (ret := re.match(target + r"\s+(\S+)\s+(\S+)\s+(\d+)(.*)", l, flags=re.IGNORECASE)):
+                    val = float(ret.group(3))
+                    if bytes(ret.group(4), 'sjis') == b'\xb5': val = val * 1e-6
+                    if (ret.group(4) == "f") or (ret.group(4) == "F"): val = val * 1e-15
+                    if (ret.group(4) == "p") or (ret.group(4) == "P"): val = val * 1e-12
+                    if (ret.group(4) == "n") or (ret.group(4) == "N"): val = val * 1e-9
+                    if (ret.group(4) == "u") or (ret.group(4) == "U"): val = val * 1e-6
+                    if (ret.group(4) == "m") or (ret.group(4) == "M"): val = val * 1e-3
+                    if (ret.group(4) == "k") or (ret.group(4) == "K"): val = val * 1e3
+                    if (ret.group(4) == "g") or (ret.group(4) == "G"): val = val * 1e9
+                    if (ret.group(4) == "t") or (ret.group(4) == "T"): val = val * 1e12 
+                    if re.match(r"[mM][eE][gG]", ret.group(4)): val = val * 1e6
+                elif (ret := re.match(target + r"\s+(\S+)\s+(\S+)\s+(\S+)", l, flags=re.IGNORECASE)):
+                    val = ret.group(3)
+            return val
 
     # Obtain time-stamp of specified suffix files on Windows OS
     # You may use this to add your plot files ".PNG", ".JPG" for the cleaning, see next function "clean()".
