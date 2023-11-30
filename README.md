@@ -55,6 +55,10 @@ Examples ::
   ==> JupyterLab file is [tests/40_Bode/40_Bode.ipynb](https://github.com/Qorvo/PyQSPICE/blob/main/tests/40_Bode/40_Bode.ipynb)<br/>
 <a href="https://github.com/Qorvo/PyQSPICE/blob/main/tests/40_Bode/40_Bode.md"><img src="https://github.com/Qorvo/PyQSPICE/blob/be2fc3f600ba9d543223423d104355a425a8f0ec/images/output_Bode_0.png?raw=True"  title="Bode Plot"></a>
 
+* **OP (Operating Point)** Simulation: [tests/50_OP](https://github.com/Qorvo/PyQSPICE/blob/main/tests/50_OP/OpePoint.md)<br/>
+  ==> JupyterLab file is [tests/50_OP/OpePoint.ipynb](https://github.com/Qorvo/PyQSPICE/blob/main/tests/50_OP/OpePoint.ipynb)<br/>
+<a href="https://github.com/Qorvo/PyQSPICE/blob/main/tests/50_Ope/OpePoint.md"><img src="https://github.com/Qorvo/PyQSPICE/blob/161ffda76e82bb9f601c78ca1ce960259178c286/images/50_OP.png?raw=True"  title="Operating Point"></a>
+
 ***
 
 ## License and Availability
