@@ -1,6 +1,6 @@
 [project]
 name = "PyQSPICE"
-version = "2023.11.20"
+version = "2023.11.29"
 authors = [
     { name="Masashi Nogawa" },
 ]
