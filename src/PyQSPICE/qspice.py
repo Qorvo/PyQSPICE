@@ -16,7 +16,7 @@ import cmath
 
 class clsQSPICE:
 ## Version Number
-    verstr = "2023.11.29"
+    verstr = "2023.12.11"
 
 ## Global (Class) Path Information
     gpath = {}
@@ -183,6 +183,21 @@ class clsQSPICE:
             return row
         return df.apply(Calc, axis=1)
 
+    # Calculate absolute value of the "target", also colculate argument of the "target"
+    # If strings specified, it also extrace real and imaginary part of the "target"
+    # Further-If "-1" specified, returns real and imaginary part of the "target" with 180 degree rotated.
+    # NOTE: apply() method returns new DataFrame object, so it returns this new object
+    def ImpePhase(self, df, target, strabs, strarg, strre="none", strim="none", sign=1):
+        def Calc(row):
+            row[strabs] = abs(row[target])
+            row[strarg] = math.degrees(cmath.phase(row[target]))
+            if strre != "none":
+                row[strre] = row[target].real * sign
+            if strim != "none":
+                row[strim] = row[target].imag * sign
+            return row
+        return df.apply(Calc, axis=1)
+
     # Calculate QTg for NISM
     def QTg(self, df, flbl, vlbl, angle=1):
         ddf = df - df.shift()
@@ -311,23 +326,179 @@ class clsQSPICE:
         self.tstime(suf)
 
     # Matplotlib Preparing a Plot for Frequency-Gain
-    def PrepFreqGainPlot(self, ax, xlbl="", ylbl="", xlim=[], ylim=[]):
+    def PrepFreqGainPlot(self, ax, xlbl="", ylbl="", xlim=[], ylim=[], ttl=""):
+        self.__PrepFreqPlot(ax, xlbl, ylbl, xlim, ylim, ttl)
+        if len(ylim) == 2: ax.set_ylim(ylim[0],ylim[1])
+
+    # Matplotlib Preparing a Plot for Frequency-Impedance
+    def PrepFreqImpePlot(self, ax, xlbl="", ylbl="", xlim=[], ylim=[], ttl=""):
+        self.__PrepFreqPlot(ax, xlbl, ylbl, xlim, ylim, ttl)
+                
+        limpe = pd.DataFrame({
+#            "v": [1e-6, 1e-5, 1e-4,  1e-3, 1e-2, 1e-1, 1,   10,  100,  1e3, 1e4,  1e5,   1e6],
+            "v": [-120, -100, -80,   -60,  -40,  -20,   0,  20,  40,   60,  80,   100,   120],
+            "l": ["1μ", "10μ","100μ","1m", "10m","100m","1","10","100","1k","10k","100k","1M"],
+        })
+        if len(ylim) == 2:  min, max = ylim[0], ylim[1]
+        if ylim == "auto":  min, max = (ax.get_ylim())[0], (ax.get_ylim())[1]
+        if "min" in locals():
+            if (int(min/20)*20) == min:
+                rmin = min
+            else:
+                rmin = (int(min/20)-1)*20
+            if (int(max/20)*20) == max:
+                rmax = max
+            else:
+                rmax = (int(max/20)+1)*20
+            ly = limpe[(limpe.v >= rmin) & (limpe.v <= rmax)].reset_index(drop=True)
+            ax.set_ylim(ly.iat[0,0],ly.iat[-1,0])
+            ax.set_yticks(ly.loc[:,"v"],ly.loc[:,"l"])
+
+    def __PrepFreqPlot(self, ax,  xlbl="", ylbl="", xlim=[], ylim=[], ttl=""):
         ax.set_xscale('log')
         ax.grid(which='major', linewidth="0.5")
         ax.grid(which='minor', linewidth="0.35")
+        if ttl != "": ax.set_title(ttl)
         if xlbl != "": ax.set_xlabel(xlbl)
         if ylbl != "": ax.set_ylabel(ylbl)
-        if len(ylim) == 2: ax.set_ylim(ylim[0],ylim[1])
-        
+
         lfreq = pd.DataFrame({
             "f": [1e-18, 1e-17, 1e-16, 1e-15, 1e-14, 1e-13, 1e-12, 1e-11, 1e-10, 1e-9, 1e-8, 1e-7,  1e-6, 1e-5, 1e-4,  1e-3, 1e-2, 1e-1,  1,   10,   100,  1e3, 1e4,  1e5,   1e6, 1e7,  1e8,   1e9],
             "l": ["1a",  "10a", "100a","1f",  "10f", "100f","1p",  "10p", "100p","1n", "10n","100n","1μ", "10μ","100μ","1m", "10m","100m","1", "10", "100","1k","10k","100k","1M","10M","100M","1G"],
         })
-        if len(xlim) == 2:
-            lf = lfreq[(lfreq.f > (xlim[0]/10)) & (lfreq.f < (xlim[1]*10))].reset_index(drop=True)
+        if len(xlim) == 2:  lf = lfreq[(lfreq.f > (xlim[0]/10)) & (lfreq.f < (xlim[1]*10))].reset_index(drop=True)
+        if xlim == "auto":  lf = lfreq[(lfreq.f > (self.sim["Xmin"]/10)) & (lfreq.f < (self.sim["Xmax"]*10))].reset_index(drop=True)
+        if "lf" in locals():
             ax.set_xlim(lf.iat[0,0],lf.iat[-1,0])
             ax.set_xticks(lf.loc[:,"f"],lf.loc[:,"l"])
+
+    # Matplotlib Preparing a Plot for Time Domain
+    def PrepTimePlot(self, ax, xlbl="", ylbl="", xlim=[], ylim=[], ttl=""):
+        ax.grid(which='major', linewidth="0.5")
+        ax.grid(which='minor', linewidth="0.35")
+        if ttl != "": ax.set_title(ttl)
+        
+        if ylbl != "": ax.set_ylabel(ylbl)
+        if len(ylim) == 2: ax.set_ylim(ylim[0],ylim[1])
             
+        if len(xlim) == 2: min, max = xlim[0], xlim[1]
+        if xlim == "auto": min, max = (ax.get_xlim())[0], (ax.get_xlim())[1]
+        if "min" in locals():
+            uni = self.__timeP(ax, min, max)
+        if xlbl != "": ax.set_xlabel(xlbl + f" ({uni})")
+            
+    def __timeP(self, ax, a, b):
+        tsu = pd.DataFrame({
+            "v": [1e-15,1e-12,1e-9, 1e-6, 1e-3, 1,   1e3],
+            "l": ["fs", "ps", "ns", "μs", "ms", "s", "×1000 s"],
+        })
+    
+        bin = [12, 16, 20, 24, 30, 40, 50, 60, 75, 80, 100]
+    
+        pdic = {
+            12: [0,  2,  4,  6,  8, 10, 12],
+            16: [0,  2,  4,  6,  8, 10, 12, 14, 16],
+            20: [0,  2,  4,  6,  8, 10, 12, 14, 16, 18, 20],
+            24: [0,  4,  8, 12, 16, 20, 24],
+            30: [0,  5, 10, 15, 20, 25, 30],
+            40: [0,  5, 10, 15, 20, 25, 30, 35, 40],
+            50: [0,  5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
+            60: [0, 10, 20, 30, 40, 50, 60],
+            75: [0, 15, 30, 45, 60, 75],
+            80: [0, 10, 20, 30, 40, 50, 60, 70, 80],
+            100:[0, 10, 20, 30, 40, 50, 60, 70, 80, 90,100],
+        }
+
+        rdic = {}
+        for i in pdic.keys():
+            t = list(reversed(pdic[i]))
+            rdic[-i] = [n * -1 for n in t]
+
+        d = round(b - a, 6)
+
+        (k,l) = tsu[tsu.v < d].tail(1).reset_index(drop=True).iloc[0,:]
+
+        m = 1
+        if round(d/k, 6) > 10: m = 10
+        if round(d/k, 6) > 100:  m = 100
+        mk = m * k
+
+        p = [n for n in bin if round(d*10 /mk, 6) <= n][0]
+
+        #print(f"min: {a/k} {l}, max: {b/k} {l}, range: {p}, scale: x{m}")
+
+        pos, rev = pdic[p], rdic[-p]
+        aT, bT = round(a*10 /mk, 6), round(b*10 /mk, 6)
+
+        if (a < 0) & (b > 0):
+            if aT in rev:
+                aR = aT
+            else:
+                aR = [n for n in rev if n < aT][-1]
+            if bT in pos:
+                bR = bT
+            else:
+                bR = [n for n in pos if n > bT][0]        
+            res = [n for n in rev if n >= aR and n < 0] + [n for n in pos if n <= bR]
+    
+        elif (a == 0) & (b > 0):
+            if bT in pos:
+                bR = bT
+            else:
+                bR = [n for n in pos if n > bT][0]
+            res = [n for n in pos if n <= bR]
+        
+        elif (a < 0) & (b == 0):
+            if aT in rev:
+                aR = aT
+            else:
+                aR = [n for n in rev if n < aT][-1]
+            res = [n for n in rev if n >= aR]
+    
+        elif b < 0:
+            c = rev[1] - rev[0]
+            offs = int(bT / c) * c
+            rev = [n + offs for n in rev]
+        
+            if aT in rev:
+                aR = aT
+            else:
+                aR = [n for n in rev if n > aT][0]
+            #print(f"a = {a}, at = {aT}, ar = {aR}, b = {b}, bT = {bT}, offs = {offs}, {rev}")
+            res = [n for n in rev if n >=aR]
+        
+        elif a > 0:
+            c = pos[1] - pos[0]
+            offs = int(aT / c) * c
+            pos = [n + offs for n in pos]
+        
+            if bT in pos:
+                bR = bT
+            else:
+                bR = [n for n in pos if n > bT][0]
+            #print(f"a = {a}, at = {aT}, b = {b}, bT = {bT}, br = {bR}, offs = {offs}, {pos}")
+            res = [n for n in pos if n <=bR]
+        
+        def _fmt(n, m):
+            text = f"{n/10 *m:,.1f}"
+            while True:
+                if ("." in text and text[-1] == "0") or (text[-1] == "."):
+                    text = text[:-1]
+                    continue
+                break
+            return text
+
+        val = [round(n/10 * mk,6) for n in res]
+        if m == 1:
+            lbl = [_fmt(n, m) for n in res]
+        if m > 1:
+            lbl = [f"{int(n/10 *m):,}" for n in res]
+            
+        ax.set_xlim(val[0], val[-1])
+        ax.set_xticks(val, lbl)
+        return l
+        
+
     # Matplotlib Preferences
     #   Font for Rounded Noto
     #   Style for "ggplot"

@@ -1,3 +1,9 @@
+# Operating Point Simulation Example
+
+In this example, we run an **OP** simulation and read its operating point into Python memory.
+
+
+
 ```python
 from PyQSPICE import clsQSPICE as pqs
 
@@ -11,12 +17,16 @@ import matplotlib.pyplot as plt
 ################
 run = pqs("op")
 
+run.InitPlot()
+
 run.qsch2cir()
 run.cir2qraw()
 run.setNline(16)
 
 # Extracting "nodes" and "elements" from ".cir" file...complex elements are not implemented yet!
 expr = run.parseCir()
+
+run.InitPlot()
 
 df = run.LoadQRAW(expr)
 #print(f"Expression of all V&I from QSPICE: {expr}")
@@ -77,6 +87,6 @@ plt.close('all')
 
 
     
-![](../../images/output_OP_1.png)
+![](op.png)
     
 

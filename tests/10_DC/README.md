@@ -20,6 +20,8 @@ import matplotlib.pyplot as plt
 pqs.chdir(".")
 run = pqs("UJ3N065080")
 
+run.InitPlot()
+
 run.qsch2cir()
 run.cir2qraw()
 
@@ -46,27 +48,12 @@ print(df)
 
 As you can see the last "print()" command, this **df** has the drain-voltage **V2** and the drain-currnet **Id(J1)**, plus the index of **.STEP** simulations.
 
-## 2. Small Preparation for Plotting
-
-
-```python
-#######
-# Plot Default
-
-mpl.rcParams.update([['font.sans-serif', ["Arial Rounded MT Bold", 'Arial Unicode MS', 'Arial', 'sans-serif']], ["mathtext.default", "rm"], ["legend.labelspacing", 0.1], ["legend.columnspacing", 0.2], ["legend.handletextpad", 0.3], ['axes.formatter.useoffset', False], ['xtick.minor.visible', True], ['ytick.minor.visible', True], ['grid.linewidth', 1],["savefig.dpi", 300], ["axes.unicode_minus", False]])
-
-#######
-# Plotting Pandas, AC
-
-plt.close('all')
-plt.style.use('ggplot')
-```
-
-## 3. Plotting
+## 2. Plotting
 
 
 ```python
 # Prepare a blank plotting area
+plt.close("all")
 fig, ax = plt.subplots(tight_layout=True)
 
 # Plot DC curves of all ".STEP"
@@ -97,6 +84,6 @@ plt.close('all')
 
 
     
-![](../../images/output_DC_0.png)
+![](UJ3N065080_plt.png)
     
 

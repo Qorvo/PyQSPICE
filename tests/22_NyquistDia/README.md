@@ -25,6 +25,8 @@ fname = "VRM_Nyquist"
 
 run = pqs(fname)
 
+run.InitPlot()
+
 run.qsch2cir()
 run.cir2qraw()
 
@@ -32,15 +34,9 @@ run.setNline(2048)
 
 g = "V(VOUT)/V(VO)"
 
-df = run.LoadQRAW([g])
+df = (run.LoadQRAW([g])).rename(columns = {g: "res"})
 
-def Calc(row):
-    row["gain"] = 20*math.log10(abs(row[g]))
-    row["phase"] = math.degrees(cmath.phase(row[g]))
-    row["reGain"] = row[g].real * -1
-    row["imGain"] = row[g].imag * -1
-    return row
-df = df.apply(Calc, axis=1)
+df = run.GainPhase(df, "res", "gain", "phase", "reGain", "imGain", -1)
 
 # Bring back some data "real"
 run.comp2real(df, ["Step", "reGain", "imGain", "gain", "phase", run.sim['Xlbl']])
@@ -50,10 +46,10 @@ print(df)
 
     
     
-    This example needs, newer version of the PyQSPICE: 2023.10.29.
+    This example needs, newer version of the PyQSPICE: 2023.12.11.
     
     
-                  Freq               V(VOUT)/V(VO)  Step       gain       phase  \
+                  Freq                         res  Step       gain       phase  \
     0     1.000000e+00 -22203.007268+14427.197050j   0.0  88.457908  146.984764   
     1     1.009035e+00 -22084.008721+14479.537420j   0.0  88.434573  146.748863   
     2     1.018152e+00 -21964.153334+14531.079084j   0.0  88.410942  146.512113   
@@ -84,41 +80,21 @@ print(df)
 
 > ***Note*** that the gain calculation of "df = df.apply()" makes everything "complex".  So we re-convert known "non-complex" data to "real".
 
-## 2. Small Preparation for Plotting
-
-
-```python
-#######
-# Plot Default
-
-mpl.rcParams.update([['font.sans-serif', ["Arial Rounded MT Bold", 'Arial Unicode MS', 'Arial', 'sans-serif']], ["mathtext.default", "rm"], ["legend.labelspacing", 0.1], ["legend.columnspacing", 0.2], ["legend.handletextpad", 0.3], ['axes.formatter.useoffset', False], ['xtick.minor.visible', True], ['ytick.minor.visible', True], ['grid.linewidth', 1],["savefig.dpi", 300], ["axes.unicode_minus", False]])
-plt.close('all')
-plt.style.use('ggplot')
-```
-
-## 3. Bode Plot, before Nyquist Diagram
+## 2. Bode Plot, before Nyquist Diagram
 
 
 ```python
 # Prepare a blank plotting area
+plt.close("all")
 fig2, (axT, axB) = plt.subplots(2,1,sharex=True,constrained_layout=True)
 
 # Plot Bode (AC) curves
-df.plot(ax=axB, x="Freq",  y="phase", label="Phase")
 df.plot(ax=axT, x="Freq",  y="gain", label="Gain")
+df.plot(ax=axB, x="Freq",  y="phase", label="Phase")
+run.PrepFreqGainPlot(axT, "Frequency (Hz)", "Gain (dB)", [1,1e8], "auto")
+run.PrepFreqGainPlot(axB, "Frequency (Hz)", "Phase (°)", [1,1e8], "auto")
 
-# Axis setup = begin =
-axB.set_xscale('log')
-axT.set_ylabel('Gain (dB)', fontsize=14)
-axB.set_ylabel('Phase (°)', fontsize=14)
-axB.set_xlabel('Frequency (Hz)', fontsize=14)
-axB.grid(which='major', linewidth="0.5")
-axB.grid(which="minor", linewidth="0.35")
-axT.grid(which='major', linewidth="0.5")
-axT.grid(which="minor", linewidth="0.35")
-axT.minorticks_on()
-axB.minorticks_on()
-# Axis setup = end =
+plt.savefig(fname + "_bode.png", format='png', bbox_inches='tight')
 
 plt.show()
 plt.close('all')
@@ -126,11 +102,11 @@ plt.close('all')
 
 
     
-![](../../images/output_Nyq_0.png)
+![png](VRM_Nyquist_bode.png)
     
 
 
-## 4. Find "fc", "phase-margin" and "gain-margin"
+## 3. Find "fc", "phase-margin" and "gain-margin"
 
 The new method "x0pos2neg()"  <crossing zero from pos to negative> finds basic parameters.
 
@@ -141,7 +117,7 @@ The new method "x0pos2neg()"  <crossing zero from pos to negative> finds basic p
 gm = 10 ** (gmdB/20)
 ```
 
-## 5. Nyquist Diagram
+## 4. Nyquist Diagram
 
 To generate a fancy plot, there are many commands but please note that we need only 2 ***df.plot*** lines at minimum.
 
@@ -151,6 +127,7 @@ import numpy as np
 from numpy import sin, cos, pi, linspace
 
 # Prepare a blank plotting area
+plt.close("all")
 fig, (ax, axF) = plt.subplots(1,2,tight_layout=True)
 
 # Zoomed Plot, at the left
@@ -210,7 +187,7 @@ plt.close('all')
 
 
     
-![](../../images/output_Nyq_1.png)
+![](VRM_Nyquist.png)
     
 
 
