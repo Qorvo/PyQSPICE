@@ -36,28 +36,28 @@ Examples ::
 
 * **DC** Simulation: [tests/10_DC](https://github.com/Qorvo/PyQSPICE/blob/main/tests/10_DC/10_DC.md)<br/>
   ==> JupyterLab file is [tests/10_DC/10_DC.ipynb](https://github.com/Qorvo/PyQSPICE/blob/main/tests/10_DC/10_DC.ipynb)<br/>
-<a href="https://github.com/Qorvo/PyQSPICE/blob/main/tests/10_DC/10_DC.md"><img src="https://github.com/Qorvo/PyQSPICE/blob/be2fc3f600ba9d543223423d104355a425a8f0ec/images/output_DC_0.png?raw=True"  title="DC Simulation"></a>
+<a href="https://github.com/Qorvo/PyQSPICE/blob/main/tests/10_DC/README.md"><img src="https://github.com/Qorvo/PyQSPICE/blob/be2fc3f600ba9d543223423d104355a425a8f0ec/images/output_DC_0.png?raw=True"  title="DC Simulation"></a>
 
 * **AC** Simulation: [tests/20_AC](https://github.com/Qorvo/PyQSPICE/blob/main/tests/20_AC/20_AC.md)<br/>
   ==> JupyterLab file is [tests/20_AC/20_AC.ipynb](https://github.com/Qorvo/PyQSPICE/blob/main/tests/20_AC/20_AC.ipynb)<br/>
-<a href="https://github.com/Qorvo/PyQSPICE/blob/main/tests/20_AC/20_AC.md"><img src="https://github.com/Qorvo/PyQSPICE/blob/be2fc3f600ba9d543223423d104355a425a8f0ec/images/output_AC_0.png?raw=True"  title="AC Simulation"></a>
+<a href="https://github.com/Qorvo/PyQSPICE/blob/main/tests/20_AC/README.md"><img src="https://github.com/Qorvo/PyQSPICE/blob/be2fc3f600ba9d543223423d104355a425a8f0ec/images/output_AC_0.png?raw=True"  title="AC Simulation"></a>
 
 * **AC, Nyquist Diagram**: [tests/22_NyquistDia](https://github.com/Qorvo/PyQSPICE/blob/main/tests/22_NyquistDia/22_NyquistDia.md)<br/>
   ==> JupyterLab file is [tests/22_NyquistDia/22_NyquistDia.ipynb](https://github.com/Qorvo/PyQSPICE/blob/main/tests/22_NyquistDia/22_NyquistDia.ipynb)<br/>
-<a href="https://github.com/Qorvo/PyQSPICE/blob/main/tests/22_NyquistDia/22_NyquistDia.md"><img src="https://github.com/Qorvo/PyQSPICE/blob/be2fc3f600ba9d543223423d104355a425a8f0ec/images/output_Nyq_1.png?raw=True"  title="Nyquist Diagram"></a>
-<a href="https://github.com/Qorvo/PyQSPICE/blob/main/tests/22_NyquistDia/22_NyquistDia.md"><img src="https://github.com/Qorvo/PyQSPICE/blob/be2fc3f600ba9d543223423d104355a425a8f0ec/images/output_Nyq_0.png?raw=True"  title="Source Bode Plot for the Nyquist Diagram"></a>
+<a href="https://github.com/Qorvo/PyQSPICE/blob/main/tests/22_NyquistDia/README.md"><img src="https://github.com/Qorvo/PyQSPICE/blob/be2fc3f600ba9d543223423d104355a425a8f0ec/images/output_Nyq_1.png?raw=True"  title="Nyquist Diagram"></a>
+<a href="https://github.com/Qorvo/PyQSPICE/blob/main/tests/22_NyquistDia/README.md"><img src="https://github.com/Qorvo/PyQSPICE/blob/be2fc3f600ba9d543223423d104355a425a8f0ec/images/output_Nyq_0.png?raw=True"  title="Source Bode Plot for the Nyquist Diagram"></a>
 
 * **TRAN** Simulation: [tests/30_TRAN](https://github.com/Qorvo/PyQSPICE/blob/main/tests/30_TRAN/30_TRAN.md)<br/>
   ==> JupyterLab file is [tests/30_TRAN/30_TRAN.ipynb](https://github.com/Qorvo/PyQSPICE/blob/main/tests/30_TRAN/30_TRAN.ipynb)<br/>
-<a href="https://github.com/Qorvo/PyQSPICE/blob/main/tests/30_TRAN/30_TRAN.md"><img src="https://github.com/Qorvo/PyQSPICE/blob/be2fc3f600ba9d543223423d104355a425a8f0ec/images/output_TRAN_0.png?raw=True"  title="TRAN Simulation"></a>
+<a href="https://github.com/Qorvo/PyQSPICE/blob/main/tests/30_TRAN/README.md"><img src="https://github.com/Qorvo/PyQSPICE/blob/be2fc3f600ba9d543223423d104355a425a8f0ec/images/output_TRAN_0.png?raw=True"  title="TRAN Simulation"></a>
 
 * **Bode** Simulation: [tests/40_Bode](https://github.com/Qorvo/PyQSPICE/blob/main/tests/40_Bode/40_Bode.md)<br/>
   ==> JupyterLab file is [tests/40_Bode/40_Bode.ipynb](https://github.com/Qorvo/PyQSPICE/blob/main/tests/40_Bode/40_Bode.ipynb)<br/>
-<a href="https://github.com/Qorvo/PyQSPICE/blob/main/tests/40_Bode/40_Bode.md"><img src="https://github.com/Qorvo/PyQSPICE/blob/be2fc3f600ba9d543223423d104355a425a8f0ec/images/output_Bode_0.png?raw=True"  title="Bode Plot"></a>
+<a href="https://github.com/Qorvo/PyQSPICE/blob/main/tests/40_Bode/README.md"><img src="https://github.com/Qorvo/PyQSPICE/blob/be2fc3f600ba9d543223423d104355a425a8f0ec/images/output_Bode_0.png?raw=True"  title="Bode Plot"></a>
 
 * **OP (Operating Point)** Simulation: [tests/50_OP](https://github.com/Qorvo/PyQSPICE/blob/main/tests/50_OP/OpePoint.md)<br/>
   ==> JupyterLab file is [tests/50_OP/OpePoint.ipynb](https://github.com/Qorvo/PyQSPICE/blob/main/tests/50_OP/OpePoint.ipynb)<br/>
-<a href="https://github.com/Qorvo/PyQSPICE/blob/main/tests/50_Ope/OpePoint.md"><img src="https://github.com/Qorvo/PyQSPICE/blob/161ffda76e82bb9f601c78ca1ce960259178c286/images/50_OP.png?raw=True"  title="Operating Point"></a>
+<a href="https://github.com/Qorvo/PyQSPICE/blob/main/tests/50_Ope/README.md"><img src="https://github.com/Qorvo/PyQSPICE/blob/161ffda76e82bb9f601c78ca1ce960259178c286/images/50_OP.png?raw=True"  title="Operating Point"></a>
 
 ***
 
