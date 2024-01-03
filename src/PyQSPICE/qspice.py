@@ -1,5 +1,6 @@
 import sys
 import subprocess
+import codecs
 import os
 import os.path
 from os.path import expanduser
@@ -53,7 +54,7 @@ class clsQSPICE:
 
         self.path['user'] = fname
         self.path['base'] = fname.removesuffix('.qsch').removesuffix('.qraw').removesuffix('.cir')
-        clsQSPICE.tstime(self, ['qsch', 'qraw', 'cir'])
+        clsQSPICE.tstime(self, ['qsch', 'qraw', 'cir', 'utf8'])
 
     # How many data points to read from QRAW simulation result files
     # Too small, too zigzag; too big, too slow ☹    
@@ -66,7 +67,11 @@ class clsQSPICE:
             with open(self.path['cir'], "w") as ofile:
                 subprocess.run([self.gpath['QUX'], "-Netlist", self.path['qsch'], "-stdout"], stdout=ofile)
                 clsQSPICE.tstime(self, ['cir'])
-
+            with codecs.open(self.path['cir'], 'r', 'latin_1') as ifile:
+                lines = ifile.read()
+            with codecs.open(self.path['utf8'], 'w', 'utf_8') as ofile:
+                ofile.write(lines)
+    
     # Run a simulation from the netlist CIR file
     def cir2qraw(self):
         if self.ts['cir']:
