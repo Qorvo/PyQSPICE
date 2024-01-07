@@ -1,0 +1,11 @@
+* VerilogBus.qsch
+ØX1 «N01´b» «outD[3]´b outD[2]´b outD[1]´b outD[0]´b» «0»  cntr
+V1 N01 0 PULSE 0 5 0 1n 1n 499n 1µ
+V2 outA 0 SIN 0 1 (1/4µ)
+.tran 20µ
+.plot tran V(outD[3])
+.plot tran V(outD[2])
+.plot tran V(outD[1])
+.plot tran V(outD[0])
+.plot tran V(outA)
+.end
