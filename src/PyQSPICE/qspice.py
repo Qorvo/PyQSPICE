@@ -17,7 +17,7 @@ import cmath
 
 class clsQSPICE:
 ## Version Number
-    verstr = "2023.12.11"
+    verstr = "2024.02.19"
 
 ## Global (Class) Path Information
     gpath = {}
@@ -513,6 +513,7 @@ class clsQSPICE:
         sfile = "./my.mplstyle"
         if os.path.exists(sfile): mpl.rc_file(sfile)
 
+        fe = None
         mfont = self.gpath['home'] + "/.config/matplotlib/ResourceHanRoundedJP-Medium.ttf"
         if os.path.exists(mfont): fe = fm.FontEntry(fname=mfont, name="Resource Han Rounded JP Medium")
         mfont = self.gpath['home'] + "/.config/matplotlib/GenJyuuGothicL-Medium.ttf"
@@ -520,3 +521,4 @@ class clsQSPICE:
         if fe:
             fm.fontManager.ttflist.insert(0,fe)
             mpl.rcParams['font.family'] = fe.name
+
