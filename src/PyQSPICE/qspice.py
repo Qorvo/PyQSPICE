@@ -71,21 +71,52 @@ class clsQSPICE:
                 lines = ifile.read()
             with codecs.open(self.path['utf8'], 'w', 'utf_8') as ofile:
                 ofile.write(lines)
+                clsQSPICE.tstime(self, ['utf_8'])
+
+    
+    def cir2mode(self, mode = 'simulation_mode'):
+        in_mode = ""
+        lines = ""
+                
+        with open(self.path['cir'], encoding='SJIS') as f:
+            for lin in f:
+                line = lin.rstrip('\r\n')
+                if ret := re.match(r'^\*\s*PyQSPICE\s+(\S+)\s+end\s*', line):
+                    in_mode = ""
+                if ret := re.match(r'^\*\s*PyQSPICE\s+(\S+)\s+begin\s*', line):
+                    in_mode = ret.group(1)
+                    if re.match(mode, in_mode, flags=re.IGNORECASE):
+                        line = r'*' + line
+                if re.match(mode, in_mode, flags=re.IGNORECASE):
+                    line = re.sub(r"^\*(.*)$", r"\1", line)                
+                else:
+                    line = re.sub(r"^\.(.*)$", r"*.\1", line)
+                lines = lines + line + '\r\n'
+                
+        ofile = self.path['base'] + "." + mode + ".cir"
+        with open(ofile, 'w') as f:
+            f.write(lines)
+            clsQSPICE.tstime(self, [mode + '.cir'])
+  
     
     # Run a simulation from the netlist CIR file
-    def cir2qraw(self):
-        if self.ts['cir']:
-            subprocess.run([self.gpath['QSPICE64'], self.path['cir']])
-            clsQSPICE.tstime(self, ['qraw'])
+    def cir2qraw(self, mode = ""):
+        if mode == "":  add = ""
+        else:           add = mode + "."
+        if self.ts[add + 'cir']:
+            subprocess.run([self.gpath['QSPICE64'], self.path[add + 'cir']])
+            clsQSPICE.tstime(self, [add + 'qraw'])
 
     # Load simulation result signals from the simulation results QRAW file
     # Input:  Array of signal strings in the way you specify in ".PLOT" statement
     # Output:  It returns Pandas DataFrame
     #  ==> Pandas supports data loading from the STDOUT-STDIN PIPE/stream (where the Numpy doesn't...temporary file needed)
-    def LoadQRAW(self, probe):
-        if self.ts['qraw']:
+    def LoadQRAW(self, probe, mode = ""):
+        if mode == "":  add = ""
+        else:           add = mode + "."
+        if self.ts[add + 'qraw']:
             plots = ",".join(probe)
-            with subprocess.Popen([self.gpath['QUX'], "-Export", self.path['qraw'], plots, str(self.sim['Nline']), "SPICE", "-stdout"], stdout=subprocess.PIPE, text=True) as qux:
+            with subprocess.Popen([self.gpath['QUX'], "-Export", self.path[add + 'qraw'], plots, str(self.sim['Nline']), "SPICE", "-stdout"], stdout=subprocess.PIPE, text=True) as qux:
                 flgv = 0
                 while True:
                     line = qux.stdout.readline()
@@ -113,7 +144,7 @@ class clsQSPICE:
                     if line.startswith("Variables:"):
                         flgv = 1
 
-            with subprocess.Popen([self.gpath['QUX'], "-Export", self.path['qraw'], plots, str(self.sim['Nline']), "CSV", "-stdout"], stdout=subprocess.PIPE, text=True) as qux:
+            with subprocess.Popen([self.gpath['QUX'], "-Export", self.path[add + 'qraw'], plots, str(self.sim['Nline']), "CSV", "-stdout"], stdout=subprocess.PIPE, text=True) as qux:
 
                 head = []
                 head.append(self.sim['Xlbl'])
@@ -134,9 +165,11 @@ class clsQSPICE:
 
                 df["Step"] = tmp
                 if self.sim['Nstep'] > 1:
-                    try: os.path.isfile(self.path['cir'])
-                    except: self.qsch2cir()
-                    with open(self.path['cir']) as f:
+                    try: os.path.isfile(self.path[add + 'cir'])
+                    except:
+                        if not os.path.isfile(self.path['cir']): self.qsch2cir()
+                        if mode != "": self.cir2mode(mode)
+                    with open(self.path[add + 'cir']) as f:
                         for line in f:
                             if re.match(r'^\.(step|STEP)', line):
                                 try: self.sim["StepInfo"]
@@ -421,8 +454,14 @@ class clsQSPICE:
 
         d = round(b - a, 6)
 
-        (k,l) = tsu[tsu.v < d].tail(1).reset_index(drop=True).iloc[0,:]
-
+####
+#       (k,l) = tsu[tsu.v < d].tail(1).reset_index(drop=True).iloc[0,:]
+####
+        if abs(a) > abs(b): dd = abs(a)
+        else:               dd = abs(b)
+        
+        (k,l) = tsu[tsu.v < dd].tail(1).reset_index(drop=True).iloc[0,:]
+####
         m = 1
         if round(d/k, 6) > 10: m = 10
         if round(d/k, 6) > 100:  m = 100
@@ -521,4 +560,3 @@ class clsQSPICE:
         if fe:
             fm.fontManager.ttflist.insert(0,fe)
             mpl.rcParams['font.family'] = fe.name
-
