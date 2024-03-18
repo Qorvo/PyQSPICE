@@ -17,7 +17,7 @@ import cmath
 
 class clsQSPICE:
 ## Version Number
-    verstr = "2024.02.19"
+    verstr = "2024.03.18"
 
 ## Global (Class) Path Information
     gpath = {}
@@ -50,7 +50,7 @@ class clsQSPICE:
         self.ts = {}
         self.date = {}
 
-        self.sim = {"Nline": 4999, "Nstep": 0}
+        self.sim = {"label": 'default', "labels": ['default'], "Nline": 4999, "Nstep": 0}
 
         self.path['user'] = fname
         self.path['base'] = fname.removesuffix('.qsch').removesuffix('.qraw').removesuffix('.cir')
@@ -59,8 +59,12 @@ class clsQSPICE:
     # How many data points to read from QRAW simulation result files
     # Too small, too zigzag; too big, too slow ☹    
     def setNline(self, i):
-        self.sim['Nline'] = i
+        self.sim['Nline'] = i        
 
+    def selectSimLabel(self, label, Nline = -999):
+        self.sim['label'] = label
+        if Nline != -999: (self.sim['label=' + label])['Nline'] = Nline
+    
     # Generate a netlist CIR file from the source schematic QSCH file
     def qsch2cir(self):
         if self.ts['qsch']:
@@ -74,35 +78,41 @@ class clsQSPICE:
                 clsQSPICE.tstime(self, ['utf_8'])
 
     
-    def cir2mode(self, mode = 'simulation_mode'):
-        in_mode = ""
+    def cir4label(self, label = 'simulation_label'):
+        if label == 'simulation_label': return
+            
+        in_label = ""
         lines = ""
                 
         with open(self.path['cir'], encoding='SJIS') as f:
             for lin in f:
                 line = lin.rstrip('\r\n')
                 if ret := re.match(r'^\*\s*PyQSPICE\s+(\S+)\s+end\s*', line):
-                    in_mode = ""
+                    in_label = ""
                 if ret := re.match(r'^\*\s*PyQSPICE\s+(\S+)\s+begin\s*', line):
-                    in_mode = ret.group(1)
-                    if re.match(mode, in_mode, flags=re.IGNORECASE):
+                    in_label = ret.group(1)
+                    if re.match(label, in_label, flags=re.IGNORECASE):
                         line = r'*' + line
-                if re.match(mode, in_mode, flags=re.IGNORECASE):
+                if re.match(label, in_label, flags=re.IGNORECASE):
                     line = re.sub(r"^\*(.*)$", r"\1", line)                
                 else:
                     line = re.sub(r"^\.(.*)$", r"*.\1", line)
                 lines = lines + line + '\r\n'
                 
-        ofile = self.path['base'] + "." + mode + ".cir"
+        ofile = self.path['base'] + "." + label + ".cir"
         with open(ofile, 'w') as f:
             f.write(lines)
-            clsQSPICE.tstime(self, [mode + '.cir'])
+            clsQSPICE.tstime(self, [label + '.cir'])
+
+        self.sim['label=' + label] = {'label': label, 'Nline': self.sim['Nline']}
+        self.sim['labels'] += [label]
   
     
     # Run a simulation from the netlist CIR file
-    def cir2qraw(self, mode = ""):
-        if mode == "":  add = ""
-        else:           add = mode + "."
+    def cir2qraw(self, label = ""):
+        if self.sim['label'] != 'default': label = self.sim['label']
+        if label == "":  add = ""
+        else:           add = label + "."
         if self.ts[add + 'cir']:
             subprocess.run([self.gpath['QSPICE64'], self.path[add + 'cir']])
             clsQSPICE.tstime(self, [add + 'qraw'])
@@ -111,19 +121,23 @@ class clsQSPICE:
     # Input:  Array of signal strings in the way you specify in ".PLOT" statement
     # Output:  It returns Pandas DataFrame
     #  ==> Pandas supports data loading from the STDOUT-STDIN PIPE/stream (where the Numpy doesn't...temporary file needed)
-    def LoadQRAW(self, probe, mode = ""):
-        if mode == "":  add = ""
-        else:           add = mode + "."
+    def LoadQRAW(self, probe, label = "", Nline = -999):
+        if self.sim['label'] != 'default':
+            label = self.sim['label']
+            Nline = (self.sim['label=' + label])['Nline']
+        if label == "":  add = ""
+        else:           add = label + "."
+        if Nline == -999: Nline = self.sim['Nline']
         if self.ts[add + 'qraw']:
             plots = ",".join(probe)
-            with subprocess.Popen([self.gpath['QUX'], "-Export", self.path[add + 'qraw'], plots, str(self.sim['Nline']), "SPICE", "-stdout"], stdout=subprocess.PIPE, text=True) as qux:
+            with subprocess.Popen([self.gpath['QUX'], "-Export", self.path[add + 'qraw'], plots, str(Nline), "SPICE", "-stdout"], stdout=subprocess.PIPE, text=True) as qux:
                 flgv = 0
                 while True:
                     line = qux.stdout.readline()
                     if line == '\n': continue        
                     if line.startswith("Values:"): break
                     if line.startswith("No. Points:"):
-                        self.sim['Nstep'] = int(int(re.match(r'^No. Points:\s*(\d+).*', line).group(1)) / (self.sim['Nline']+1))
+                        self.sim['Nstep'] = int(int(re.match(r'^No. Points:\s*(\d+).*', line).group(1)) / (Nline + 1))
                     if line.startswith("Plotname:"):
                         self.sim['Type'] = re.match(r'^Plotname:\s+(\S.*)$', line).group(1)
                         if self.sim['Type'].startswith("Tran"):
@@ -144,7 +158,7 @@ class clsQSPICE:
                     if line.startswith("Variables:"):
                         flgv = 1
 
-            with subprocess.Popen([self.gpath['QUX'], "-Export", self.path[add + 'qraw'], plots, str(self.sim['Nline']), "CSV", "-stdout"], stdout=subprocess.PIPE, text=True) as qux:
+            with subprocess.Popen([self.gpath['QUX'], "-Export", self.path[add + 'qraw'], plots, str(Nline), "CSV", "-stdout"], stdout=subprocess.PIPE, text=True) as qux:
 
                 head = []
                 head.append(self.sim['Xlbl'])
@@ -161,14 +175,14 @@ class clsQSPICE:
 
                 tmp = []
                 for i in range(self.sim['Nstep']):
-                    tmp = tmp + ([i] * (self.sim['Nline']+1))
+                    tmp = tmp + ([i] * (Nline + 1))
 
                 df["Step"] = tmp
                 if self.sim['Nstep'] > 1:
                     try: os.path.isfile(self.path[add + 'cir'])
                     except:
                         if not os.path.isfile(self.path['cir']): self.qsch2cir()
-                        if mode != "": self.cir2mode(mode)
+                        if label != "": self.cir4label(label)
                     with open(self.path[add + 'cir']) as f:
                         for line in f:
                             if re.match(r'^\.(step|STEP)', line):
@@ -177,7 +191,15 @@ class clsQSPICE:
                                 self.sim["StepInfo"] = self.sim["StepInfo"] + line
                 else:
                     self.sim["StepInfo"] = "N/A"
-
+                    
+                if self.sim['label'] != 'default':
+                    (self.sim['label=' + label])['Nstep'] = self.sim['Nstep']
+                    (self.sim['label=' + label])['Type']  = self.sim['Type']
+                    (self.sim['label=' + label])['Xlbl']  = self.sim['Xlbl']
+                    (self.sim['label=' + label])['Xmin']  = self.sim['Xmin']
+                    (self.sim['label=' + label])['Xmax']  = self.sim['Xmax']
+                    (self.sim['label=' + label])['StepInfo'] = self.sim['StepInfo']
+                    
             return df
 
     # In the given DataFrame "df", search the "crossing" signal crossing ZERO from positive to negative,
@@ -431,9 +453,17 @@ class clsQSPICE:
             "l": ["fs", "ps", "ns", "μs", "ms", "s", "×1000 s"],
         })
     
-        bin = [12, 16, 20, 24, 30, 40, 50, 60, 75, 80, 100]
+        bin = [0.2, 0.4, 0.8, 1, 2, 4, 5, 10, 12, 16, 20, 24, 30, 40, 50, 60, 75, 80, 100]
     
         pdic = {
+            0.2: [0,  0.1, 0.2, 0.3, 0.4, 0.5, 0.6],
+            0.4: [0,  0.1, 0.2, 0.3, 0.4, 0.5, 0.6],
+            0.8: [0,  0.2, 0.4, 0.6, 0.8, 1.0, 1.2],
+            1:  [0,  0.2, 0.4, 0.6, 0.8, 1],
+            2:  [0,  0.5,  1,  1.5,  2],
+            4:  [0,  1,  2,  3,  4],
+            5:  [0,  1,  2,  3,  4, 5],
+            10: [0,  2,  4,  6,  8, 10],
             12: [0,  2,  4,  6,  8, 10, 12],
             16: [0,  2,  4,  6,  8, 10, 12, 14, 16],
             20: [0,  2,  4,  6,  8, 10, 12, 14, 16, 18, 20],
@@ -513,18 +543,19 @@ class clsQSPICE:
         
         elif a > 0:
             c = pos[1] - pos[0]
-            offs = int(aT / c) * c
+            offs = int(round(aT / c, 6)) * c
             pos = [n + offs for n in pos]
         
             if bT in pos:
                 bR = bT
             else:
                 bR = [n for n in pos if n > bT][0]
-            #print(f"a = {a}, at = {aT}, b = {b}, bT = {bT}, br = {bR}, offs = {offs}, {pos}")
+            #print(f"a = {a}, aT = {aT}, b = {b}, bT = {bT}, br = {bR}, offs = {offs}, {pos}")
             res = [n for n in pos if n <=bR]
         
         def _fmt(n, m):
-            text = f"{n/10 *m:,.1f}"
+            if p < 10: text = f"{n/10 *m:,.2f}"
+            else:      text = f"{n/10 *m:,.1f}"
             while True:
                 if ("." in text and text[-1] == "0") or (text[-1] == "."):
                     text = text[:-1]
@@ -539,6 +570,11 @@ class clsQSPICE:
             lbl = [f"{int(n/10 *m):,}" for n in res]
             
         ax.set_xlim(val[0], val[-1])
+        #print("MMM")
+        #print(val)
+        #print("MMM")
+        #print(lbl)
+        #print("MMM")
         ax.set_xticks(val, lbl)
         return l
         
