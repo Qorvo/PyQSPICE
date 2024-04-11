@@ -17,7 +17,7 @@ import cmath
 
 class clsQSPICE:
 ## Version Number
-    verstr = "2024.03.18"
+    verstr = "2024.04.11"
 
 ## Global (Class) Path Information
     gpath = {}
@@ -116,6 +116,13 @@ class clsQSPICE:
         if self.ts[add + 'cir']:
             subprocess.run([self.gpath['QSPICE64'], self.path[add + 'cir']])
             clsQSPICE.tstime(self, [add + 'qraw'])
+
+    def copy2qraw(self, label = ""):
+        if self.sim['label'] != 'default': label = self.sim['label']
+        if label == "":  add = ""
+        else:           add = label + "."
+        clsQSPICE.tstime(self, [add + 'qraw'])
+
 
     # Load simulation result signals from the simulation results QRAW file
     # Input:  Array of signal strings in the way you specify in ".PLOT" statement
