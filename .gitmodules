@@ -1,0 +1,3 @@
+[submodule "tests/80_MicrowaveJournal"]
+	path = tests/80_MicrowaveJournal
+	url = https://github.com/Qorvo/QSPICE_on_MWJ.git
