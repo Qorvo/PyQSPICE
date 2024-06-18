@@ -17,7 +17,7 @@ import cmath
 
 class clsQSPICE:
 ## Version Number
-	verstr = "2024.04.15"
+	verstr = "2024.05.14"
 
 ## Global (Class) Path Information
 	gpath = {}
@@ -105,6 +105,7 @@ class clsQSPICE:
 			options += "a1" + fnAC1
 			if runAC1:   options += "/"
 			else:        options += ":"
+		options += "x"
 
 		lines = ""
 		with open(cir, encoding='SJIS') as f:
